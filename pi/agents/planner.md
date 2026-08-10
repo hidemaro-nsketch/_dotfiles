@@ -51,7 +51,7 @@ You receive arguments in this format:
 - **tier=S:** Skip this phase entirely.
 - **tier=M:** Consult external tools for design advice:
   ```bash
-  opencode run -m openai/gpt-5.6-sol-pro "{design question}" 2>/dev/null
+  opencode run -m openai/gpt-5.6-sol "{design question}" 2>/dev/null
   # On "Quota exceeded" or model error, retry with:
   opencode run -m github-copilot/gpt-5.6-sol "{design question}" 2>/dev/null
   ```

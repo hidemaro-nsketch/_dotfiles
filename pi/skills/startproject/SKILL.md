@@ -56,7 +56,7 @@ $ARGUMENTS: "{task description} --tier={S|M|L} --task-file={TASK_FILE} --linear-
 ### tier=M
 別セッションで設計相談:
 ```bash
-opencode run -m openai/gpt-5.6-sol-pro "{設計相談内容}" 2>/dev/null
+opencode run -m openai/gpt-5.6-sol "{設計相談内容}" 2>/dev/null
 # Quota exceeded 等で失敗したら:
 opencode run -m github-copilot/gpt-5.6-sol "{設計相談内容}" 2>/dev/null
 ```
