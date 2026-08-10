@@ -24,9 +24,12 @@ Claude Code + OpenCode CLI の設定を pi に移植するための分析ドキ�
 cp AGENTS.md ~/.pi/agent/AGENTS.md
 ```
 
+逆方向（`~/.pi/agent/` → リポジトリへのスナップショット）は `sync-pi.sh` で取る。
+
 ```
 pi/
 ├── AGENTS.md                      # ✅ pi 用グローバル指示（OpenCode とは独立）
+├── settings.json                  # ✅ pi 本体設定（モデル / パッケージ）
 ├── skills/
 │   ├── orchestrate/SKILL.md       # ✅ メインオーケストレーター
 │   ├── startproject/SKILL.md      # ✅ 計画フェーズ
@@ -47,21 +50,34 @@ pi/
 
 ## 必要な追加設定
 
-### 1. pi 設定更新(settings.json)
+### 1. pi 設定(settings.json) ✅
+
+**ファイル:** `pi/settings.json` → `~/.pi/agent/settings.json`
 
 ```jsonc
-// ~/.pi/agent/settings.json に追加
 {
-  "packages": ["npm:pi-subagents"],
+  "defaultModel": "accounts/fireworks/models/glm-5p2",
   "defaultProvider": "fireworks",
-  "defaultModel": "accounts/fireworks/models/qwen3p6-plus",
-  // 追加提案
-  "env": {
-    "PI_DONT_ASK_MODE": "0",  // 1 で自動承認モード
-    "PI_VERBOSE": "1"
-  }
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": true,
+  "packages": [
+    "npm:pi-subagents",           // subagent ツール
+    "npm:@ollama/pi-web-search",  // web_search / web_fetch（MCP 非対応の代替）
+    "npm:pi-opencode-bridge"      // OpenCode 連携
+  ],
+  "theme": "dark"
 }
 ```
+
+> `lastChangelogVersion` は pi が自動更新するため上記では省略。
+
+**モデル構成:** pi 本体は Fireworks の GLM で動く。GPT を使うのは設計相談で
+`opencode run -m openai/gpt-5.6-sol`（失敗時 `github-copilot/gpt-5.6-sol`）に
+サブプロセスで投げるときだけ。pi のデフォルトモデルと別系統にすることで、
+異モデルのセカンドオピニオンとして機能させる意図（→ `pi/AGENTS.md`）。
+
+> `env` に `PI_DONT_ASK_MODE` / `PI_VERBOSE` を持たせる案は未採用。
+> DONT-ASK MODE は下記の通りシェルの環境変数で渡す。
 
 ### 2. Linear 連携
 
@@ -111,7 +127,7 @@ claude/settings.json の `permissions` をそのまま移植。
 | カテゴリ | パターン数 | 動作 |
 |---------|-----------|------|
 | **allow** | Claude Code の Bash allow 相当 | 確認なしで即実行 |
-| **deny** | 4 | 即ブロック (`sudo`, `rm -rf`, `wget`, `git reset`) |
+| **deny** | 5 | 即ブロック (`sudo`, `rm -rf`, `wget`, `git reset` / `git reset **`) |
 | **ask** | 2 | ユーザーに確認 (`git rebase`, `rm`) |
 | **default** | — | 不明なコマンドは `ask` 扱い |
 
@@ -214,5 +230,5 @@ DONT-ASK MODE では:
 
 - Claude Code 設定: `claude/settings.json`, `claude/CLAUDE.md`, `claude/commands/*.md`
 - pi グローバル指示: `pi/AGENTS.md`（OpenCode の `opencode/AGENTS.md` とは独立）
-- OpenCode 設定: `opencode/opencode.jsonc`, `opencode/agents/*.md`, `opencode/commands/*.md`, `opencode/config.toml`
+- OpenCode 設定: `opencode/opencode.jsonc`, `opencode/AGENTS.md`, `opencode/agents/*.md`, `opencode/commands/*.md`, `opencode/skills/*/SKILL.md`（`config.toml` は廃止済み）
 - pi 設定: `~/.pi/agent/settings.json`, `pi/skills/*/SKILL.md`, `pi/agents/*.md`, `pi/extensions/permissions.ts`
